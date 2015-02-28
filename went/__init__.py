@@ -2,6 +2,7 @@
 
 import re
 import requests
+import html2text
 from bs4 import BeautifulSoup
 from mf2py.parser import Parser
 
@@ -32,7 +33,7 @@ class Webmention(object):
                     except IndexError:
                         html = item['children'][0]['value']
 
-                self.body = html # should clean the html
+                self.body = html2text.html2text(html) # this cleans the html in the body
 
                 self.author = {}
                 try:
@@ -43,6 +44,8 @@ class Webmention(object):
                     pass
 
                 self.date = item['properties'].get('published', [None])[0]
+                self.published = self.date
+
                 self.url = item['properties'].get('url', [None])[0]
                 self.name = item['properties'].get('name', [None])[0]
                 self.summary = item['properties'].get('summary', [None])[0]
