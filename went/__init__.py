@@ -57,3 +57,6 @@ class Webmention(object):
                     self.via = None
 
                 break
+
+        else:
+            return None
