@@ -1,6 +1,5 @@
 PyYAML==3.11
 beautifulsoup4==4.3.2
-gunicorn==19.2.1
 html5lib==0.999
 mf2py==0.2.4
 pyaml==15.02.1
