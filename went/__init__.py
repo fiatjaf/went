@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import re
+import urlparse
 import requests
 import html2text
 from bs4 import BeautifulSoup
@@ -12,6 +13,11 @@ def url_in_source(url, source):
     soup = BeautifulSoup(source)
     return soup.find('a', attrs={'href': url})
     return soup.find('link', attrs={'href': url})
+
+size_limits = {
+  'summary': 422,
+  'name': 50
+}
 
 class Webmention(object):
     def __init__(self, url=None, source=None, target=None):
@@ -38,8 +44,17 @@ class Webmention(object):
                 self.author = {}
                 try:
                     self.author['name'] = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('name', [None])[0]
+
                     self.author['photo'] = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('photo', [None])[0]
+                    if self.author['photo']:
+                        self.author['photo'] = urlparse.urljoin(source, self.author['photo'])
+                        if not requests.head(self.author['photo']).ok:
+                            self.author['photo'] = None
+
                     self.author['url'] = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('url', [None])[0]
+                    if self.author['url']:
+                        self.author['url'] = urlparse.urljoin(source, self.author['url'])
+
                 except KeyError:
                     pass
 
@@ -47,6 +62,9 @@ class Webmention(object):
                 self.published = self.date
 
                 self.url = item['properties'].get('url', [None])[0]
+                if self.url:
+                    self.url = urlparse.urljoin(source, self.url)
+
                 self.name = item['properties'].get('name', [None])[0]
                 self.summary = item['properties'].get('summary', [None])[0]
 
@@ -60,3 +78,8 @@ class Webmention(object):
 
         else:
             return None
+
+        for key, limit in size_limits.items():
+            for d in (self.__dict__, self.author):
+                if key in d and type(d[key]) in (unicode, str):
+                    d[key] = d[key][:limit]

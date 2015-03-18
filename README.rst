@@ -1,5 +1,7 @@
 **went** stands for *webmention endpoint tools*.
 
+.. code-block:: python
+
     import went
     webmention = went.Webmention(source_url, target=target_url)
     webmention = went.Webmention(source_html, target=target_url)
