@@ -19,6 +19,9 @@ size_limits = {
   'name': 50
 }
 
+class NoContent(ValueError):
+    pass
+
 class Webmention(object):
     def __init__(self, url=None, source=None, target=None):
         if url:
@@ -37,7 +40,10 @@ class Webmention(object):
                     try:
                         html = item['properties']['summary'][0]
                     except (IndexError, KeyError):
-                        html = item['children'][0]['value']
+                        try:
+                            html = item['children'][0]['value']
+                        except (IndexError, KeyError):
+                            raise NoContent
 
                 self.body = html2text.html2text(html) # this cleans the html in the body
 
