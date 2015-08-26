@@ -3,6 +3,7 @@
 import re
 import urlparse
 import requests
+import datetime
 import html2text
 from bs4 import BeautifulSoup
 from mf2py.parser import Parser
@@ -68,12 +69,17 @@ class Webmention(object):
                 except KeyError:
                     pass
 
-                self.date = item['properties'].get('published', [None])[0]
-                self.published = self.date
+                self.published = item['properties'].get('published', [None])[0]
+                if self.published:
+                    self.date = self.published
+                else:
+                    self.date = datetime.datetime.now().isoformat()
 
                 self.url = item['properties'].get('url', [None])[0]
                 if self.url:
                     self.url = urlparse.urljoin(source, self.url)
+                else:
+                    self.url = source
 
                 self.name = item['properties'].get('name', [None])[0]
                 self.summary = item['properties'].get('summary', [None])[0]
