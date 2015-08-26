@@ -41,9 +41,12 @@ class Webmention(object):
                         html = item['properties']['summary'][0]
                     except (IndexError, KeyError):
                         try:
-                            html = item['children'][0]['value']
+                            html = item['properties']['name'][0]
                         except (IndexError, KeyError):
-                            raise NoContent
+                            try:
+                                html = item['children'][0]['value']
+                            except (IndexError, KeyError):
+                                raise NoContent
 
                 self.body = html2text.html2text(html) # this cleans the html in the body
 
