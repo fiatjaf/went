@@ -48,6 +48,7 @@ class Webmention(object):
                             except (IndexError, KeyError):
                                 raise NoContent
 
+                self.html = html
                 self.body = html2text.html2text(html) # this cleans the html in the body
 
                 self.author = {}
