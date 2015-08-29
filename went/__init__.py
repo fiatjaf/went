@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import re
+import urllib
 import urlparse
 import requests
 import datetime
@@ -90,6 +91,16 @@ class Webmention(Mapping):
                     self.via = item['properties']['uid'][0].split(',')[0].split(':')[1]
                 except (IndexError, KeyError):
                     self.via = None
+
+                if len(item['properties'].get('like', item['properties'].get('like-of', []))) > 0:
+                    self.like = True
+                    src = urlparse.urlparse(self.url)
+                    qs = urlparse.parse_qs(src.query)
+                    qs['likes'] = qs.get('likes', urllib.quote(self.author.url))
+                    query = urllib.urlencode(qs)
+                    self.url = urlparse.urljoin(self.url, '?' + query)
+                else:
+                    self.like = False
 
                 break
 
