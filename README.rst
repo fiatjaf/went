@@ -12,6 +12,6 @@
     webmention.html == '<a href="http://otherpage.com/">to see my <i>hello world</i> go to this other page</a>'
     webmention.body == '[to see my _hello world_ go to this other page](http://otherpage.com/)'
     webmention.via == 'twitter.com' # bridgy-specific
-    webmention.author['name'] == 'Someone'
-    webmention.author['url'] == 'http://someone.com/'
-    webmention.author['photo'] == 'http://someone.com/photo.jpg'
+    webmention.author.name == 'Someone'
+    webmention.author.url == 'http://someone.com/'
+    webmention.author.photo == 'http://someone.com/photo.jpg'
