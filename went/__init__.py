@@ -25,18 +25,21 @@ size_limits = {
 class NoContent(ValueError):
     pass
 
+class NoURLInSource(ValueError):
+    pass
+
 class Webmention(Mapping):
     def __init__(self, url=None, source=None, target=None):
         if url:
             source = requests.get(url).text
         if target:
             if not url_in_source(target, source):
-                return None
+                raise NoURLInSource
 
+        mf2author = None
         mf2 = Parser(doc=source).to_dict()
         for item in mf2['items']:
             if 'h-entry' in item['type']:
-                entry = item
                 try:
                     html = item['properties']['content'][0]['html']
                 except (IndexError, KeyError):
@@ -53,23 +56,6 @@ class Webmention(Mapping):
 
                 self.html = html
                 self.body = html2text.html2text(html) # this cleans the html in the body
-
-                self.author = Author()
-                try:
-                    self.author.name = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('name', [None])[0]
-
-                    self.author.photo = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('photo', [None])[0]
-                    if self.author.photo:
-                        self.author.photo = urlparse.urljoin(source, self.author.photo)
-                        if not requests.head(self.author.photo).ok:
-                            self.author.photo = None
-
-                    self.author.url = item['properties'].get('author', [{'properties': {}}])[0]['properties'].get('url', [None])[0]
-                    if self.author.url:
-                        self.author.url = urlparse.urljoin(source, self.author.url)
-
-                except KeyError:
-                    pass
 
                 self.published = item['properties'].get('published', [None])[0]
                 if self.published:
@@ -102,7 +88,51 @@ class Webmention(Mapping):
                 else:
                     self.like = False
 
+                # try to get author information inside the h-entry
+                mf2author = item['properties'].get(
+                    'author',
+                    item['properties'].get(
+                        'h-card',
+                        None
+                    )
+                )
+
                 break
+
+            # after breaking out of the h-entry, parse author
+            self.author = Author()
+
+            if mf2author:
+                try:
+                    author_properties = mf2author[0]['properties']
+                except (IndexError, KeyError):
+                    author_properties = None
+            else:
+                # get author information from outside h-entry
+                for item in mf2['items']:
+                    if 'h-card' in item['type']:
+                        try:
+                            author_properties = item['properties']
+                        except KeyError:
+                            author_properties = None
+
+            if author_properties:
+                try:
+                    self.author.name = author_properties.get('name', [None])[0]
+
+                    self.author.photo = author_properties.get('photo', [None])[0]
+                    if self.author.photo:
+                        self.author.photo = urlparse.urljoin(source, self.author.photo)
+                        if not requests.head(self.author.photo).ok:
+                            self.author.photo = None
+
+                    self.author.url = author_properties.get('url', [None])[0]
+                    if self.author.url:
+                        self.author.url = urlparse.urljoin(source, self.author.url)
+
+                except KeyError:
+                    pass
+
 
         else:
             return None
