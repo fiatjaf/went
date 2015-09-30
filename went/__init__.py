@@ -80,11 +80,6 @@ class Webmention(Mapping):
 
                 if len(item['properties'].get('like', item['properties'].get('like-of', []))) > 0:
                     self.like = True
-                    src = urlparse.urlparse(self.url)
-                    qs = urlparse.parse_qs(src.query)
-                    qs['like'] = qs.get('like', 'true')
-                    query = urllib.urlencode(qs)
-                    self.url = urlparse.urljoin(self.url, '?' + query)
                 else:
                     self.like = False
 
@@ -133,10 +128,19 @@ class Webmention(Mapping):
             except KeyError:
                 pass
 
+        # apply field limits
         for key, limit in size_limits.items():
             for d in (self.__dict__, self.author.__dict__):
                 if key in d and type(d[key]) in (unicode, str):
                     d[key] = d[key][:limit]
+
+        # modify url when webmention is a facebook like (so url is unique)
+        if self.like:
+            src = urlparse.urlparse(self.url)
+            qs = urlparse.parse_qs(src.query)
+            qs['likes'] = qs.get('likes', self.author.url)
+            query = urllib.urlencode(qs)
+            self.url = urlparse.urljoin(self.url, '?' + query)
 
 class Author(Mapping):
     def __init__(self):
