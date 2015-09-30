@@ -20,7 +20,7 @@ except IOError:
 
 setup(
     name="went",
-    version="0.1.0",
+    version="0.1.2",
     description="Tools for implementing a webmention enpoint.",
     license="MIT",
     author="Giovanni T. Parra",

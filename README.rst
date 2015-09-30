@@ -3,8 +3,12 @@
 .. code-block:: python
 
     import went
-    webmention = went.Webmention(source_url, target=target_url)
-    webmention = went.Webmention(source_html, target=target_url)
+
+    try:
+        webmention = went.Webmention(source_url, target=target_url)
+        # or webmention = went.Webmention(source_html, target=target_url)
+    except (went.NoContent, went.NoURLInSource):
+        webmention = None
 
     webmention.date == '2015-02-26'
     webmention.url == 'http://someone.com/blog/hello.html'
