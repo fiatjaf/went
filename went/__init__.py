@@ -28,17 +28,37 @@ class NoContent(ValueError):
 class NoURLInSource(ValueError):
     pass
 
+class Proceed(Exception):
+    pass
+
 class Webmention(Mapping):
     def __init__(self, url=None, source=None, target=None, alternative_targets=[]):
         if url:
             source = requests.get(url).text
         if target:
+            # verifying if the webmention body contains links to the correct
+            # targetted object.
             if not url_in_source(target, source):
-                for altt in alternative_targets:
-                    if url_in_source(altt, source):
-                        break
-                else:
-                    raise NoURLInSource
+                try:
+                    # the webmention can sometimes be sent with a target that is different
+                    # from the link it contains in its body, because the webmention sender
+                    # agent could have followed redirects to determine the first (or maybe
+                    # the second), in this case we try to replicate its behavior by also
+                    # following redirects and testing again with the final url.
+                    target_final_url = requests.head(target, allow_redirects=True).url
+                    if not url_in_source(target_final_url, source):
+                        raise Proceed
+                except:
+                    # another option, just for the sake of completeness, is to allow the
+                    # user who is receiving the webmention to specify multiple urls he
+                    # will accept as correct if we found them in the webmention source,
+                    # who can imagine what kind of bizarre software this user has in his
+                    # hands so that he accepts a multitude of different urls for each post?
+                    for altt in alternative_targets:
+                        if url_in_source(altt, source):
+                            break
+                    else:
+                        raise NoURLInSource
 
         mf2author = None
         mf2 = Parser(doc=source).to_dict()
