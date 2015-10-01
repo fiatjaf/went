@@ -29,12 +29,16 @@ class NoURLInSource(ValueError):
     pass
 
 class Webmention(Mapping):
-    def __init__(self, url=None, source=None, target=None):
+    def __init__(self, url=None, source=None, target=None, alternative_targets=[]):
         if url:
             source = requests.get(url).text
         if target:
             if not url_in_source(target, source):
-                raise NoURLInSource
+                for altt in alternative_targets:
+                    if url_in_source(altt, source):
+                        break
+                else:
+                    raise NoURLInSource
 
         mf2author = None
         mf2 = Parser(doc=source).to_dict()
