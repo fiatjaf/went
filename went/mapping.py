@@ -3,19 +3,19 @@ class Mapping(dict):
         for k, v in kwargs.items():
             self.__dict__[k] = v
 
-    def __setitem__(self, key, item): 
+    def __setitem__(self, key, item):
         self.__dict__[key] = item
 
-    def __getitem__(self, key): 
+    def __getitem__(self, key):
         return self.__dict__[key]
 
-    def __repr__(self): 
+    def __repr__(self):
         return repr(self.__dict__)
 
-    def __len__(self): 
+    def __len__(self):
         return len(self.__dict__)
 
-    def __delitem__(self, key): 
+    def __delitem__(self, key):
         del self.__dict__[key]
 
     def clear(self):
@@ -42,17 +42,8 @@ class Mapping(dict):
     def items(self):
         return self.__dict__.items()
 
-    def pop(self, *args):
-        return self.__dict__.pop(*args)
-
-    def __cmp__(self, dict):
-        return cmp(self.__dict__, dict)
-
     def __contains__(self, item):
         return item in self.__dict__
 
     def __iter__(self):
         return iter(self.__dict__)
-
-    def __unicode__(self):
-        return unicode(repr(self.__dict__))
